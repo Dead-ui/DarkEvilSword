@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Тропа героя — мини-квест на Python.
-
-Один уровень: три моба, торговец и босс.
-Четыре класса, у каждого 3 оружия и 3 умения.
-В магазине продаются зелья здоровья/маны и оружие класса.
-
 Запуск:  python3 main.py
 """
 
@@ -17,14 +11,11 @@ import sys
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-# ============================================================================
 #  ОФОРМЛЕНИЕ ТЕРМИНАЛА
-# ============================================================================
 
 USE_COLOR = sys.stdout.isatty()
 
 if sys.platform == "win32":
-    # Включаем ANSI-цвета в консоли Windows 10+
     import os
 
     os.system("")
@@ -79,7 +70,6 @@ def line(char: str = "-", width: int = 58) -> str:
 
 
 def ask(prompt: str) -> str:
-    """Ввод с корректной обработкой Ctrl+C / конца файла."""
     try:
         return input(prompt).strip()
     except (EOFError, KeyboardInterrupt):
@@ -92,10 +82,7 @@ def bar(current: int, maximum: int, color: str = "32", width: int = 20) -> str:
     filled = int(round(width * current / maximum)) if maximum else 0
     return _paint(BAR_FULL * filled + BAR_EMPTY * (width - filled), color)
 
-
-# ============================================================================
 #  ДАННЫЕ: ОРУЖИЕ, УМЕНИЯ, КЛАССЫ
-# ============================================================================
 
 
 @dataclass(frozen=True)
@@ -113,13 +100,13 @@ class Skill:
     name: str
     mana: int
     desc: str
-    kind: str                 # damage / multi / heal / buff / poison / freeze / dodge
-    power: float = 1.0        # множитель атаки
-    hits: int = 1             # число ударов для multi
-    heal_pct: float = 0.0     # доля максимального HP для heal
-    value: int = 0            # сила яда или прибавка атаки
-    duration: int = 0         # длительность яда
-    crit: float = 0.0         # шанс крита (0 — обычные 10%)
+    kind: str
+    power: float = 1.0
+    hits: int = 1
+    heal_pct: float = 0.0
+    value: int = 0
+    duration: int = 0
+    crit: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -133,7 +120,7 @@ class HeroClass:
     skills: Tuple[Skill, ...]
 
 
-# --- 3 оружия на каждый класс ------------------------------------------------
+#3 оружия на каждый класс
 
 WEAPONS: Dict[str, Tuple[Weapon, ...]] = {
     "Воин": (
@@ -159,7 +146,7 @@ WEAPONS: Dict[str, Tuple[Weapon, ...]] = {
 }
 
 
-# --- Классы и их умения ------------------------------------------------------
+#Классы и их умения
 
 CLASSES: Dict[str, HeroClass] = {
     "Воин": HeroClass(
@@ -217,7 +204,7 @@ CLASSES: Dict[str, HeroClass] = {
 }
 
 
-# --- Магазин -----------------------------------------------------------------
+#Магазин
 
 HEALTH_POTION_PRICE = 25
 MANA_POTION_PRICE = 20
@@ -225,9 +212,8 @@ HEAL_PCT = 0.45
 MANA_PCT = 0.50
 
 
-# ============================================================================
-#  ИГРОК И ВРАГИ
-# ============================================================================
+#ИГРОК И ВРАГИ
+
 
 
 @dataclass
@@ -333,13 +319,11 @@ def make_boss() -> Enemy:
     )
 
 
-# ============================================================================
-#  БОЕВАЯ МАТЕМАТИКА
-# ============================================================================
+
+#БОЕВАЯ МАТЕМАТИКА
 
 
 def roll_damage(raw: float, defense: int) -> int:
-    """Урон с учётом защиты и небольшим разбросом."""
     damage = (raw - defense * 0.6) * random.uniform(0.9, 1.1)
     return max(1, round(damage))
 
@@ -390,7 +374,6 @@ def apply_skill(p: Player, e: Enemy, skill: Skill) -> None:
         print(f"Всего нанесено {total} урона.")
         return
 
-    # damage / freeze / poison
     crit = random.random() < (skill.crit or 0.10)
     damage = roll_damage(p.attack * skill.power, e.defense)
     if crit:
@@ -411,7 +394,6 @@ def apply_skill(p: Player, e: Enemy, skill: Skill) -> None:
 def enemy_turn(p: Player, e: Enemy) -> None:
     print()
 
-    # Яд действует до хода врага
     if e.poison_turns > 0 and e.hp > 0:
         e.hp = max(0, e.hp - e.poison_damage)
         e.poison_turns -= 1
@@ -442,9 +424,8 @@ def enemy_turn(p: Player, e: Enemy) -> None:
     print(red(f"{e.name}: {move} — {damage} урона. У вас осталось {p.hp}/{p.max_hp} HP."))
 
 
-# ============================================================================
-#  ИНТЕРФЕЙС БОЯ
-# ============================================================================
+
+#ИНТЕРФЕЙС БОЯ
 
 
 def show_status(p: Player, e: Enemy) -> None:
@@ -565,7 +546,6 @@ def player_turn(p: Player, e: Enemy) -> None:
 
 
 def combat(p: Player, e: Enemy) -> bool:
-    # Эффекты действуют только в пределах одного боя
     p.buff_attack = 0
     p.dodge = False
     print()
@@ -590,9 +570,7 @@ def combat(p: Player, e: Enemy) -> bool:
     return True
 
 
-# ============================================================================
 #  МАГАЗИН
-# ============================================================================
 
 
 def shop(p: Player, title: str) -> None:
@@ -662,9 +640,7 @@ def shop(p: Player, title: str) -> None:
         print("Нет такого варианта.")
 
 
-# ============================================================================
-#  СОЗДАНИЕ ГЕРОЯ И СЮЖЕТ
-# ============================================================================
+#СОЗДАНИЕ ГЕРОЯ И СЮЖЕТ
 
 
 def print_banner() -> None:
@@ -741,9 +717,7 @@ def create_player() -> Player:
     )
 
 
-# ============================================================================
-#  ЭКРАНЫ КОНЦА
-# ============================================================================
+#ЭКРАНЫ КОНЦА
 
 
 def game_over(p: Player) -> None:
@@ -772,10 +746,8 @@ def victory(p: Player) -> None:
     print(line("="))
 
 
-# ============================================================================
-#  ИГРОВОЙ ЦИКЛ
-# ============================================================================
 
+#ИГРОВОЙ ЦИКЛ
 
 def play() -> bool:
     intro()
